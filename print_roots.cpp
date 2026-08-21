@@ -1,6 +1,11 @@
 #include "TXLib.h"
 #include <stdio.h>
-#include "solve_linear.h"
+#include "print_roots.h"
+
+//TODO - костанты кейсов
+
+
+const int INFINITE_ROOTS = 10000000;
 
 void PrintRoots(int quantity_roots, double first_root, double second_root){
     switch (quantity_roots){
@@ -13,7 +18,7 @@ void PrintRoots(int quantity_roots, double first_root, double second_root){
         case 2:
                 printf("Уравнения имеет два корня: %lg and %lg\n", first_root, second_root);
                 break;
-        case INF:
+        case INFINITE_ROOTS:
                 puts("Уравнение имеет бесконечное число решений X^");
                 break;
         default:
