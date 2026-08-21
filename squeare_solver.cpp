@@ -5,6 +5,7 @@
 #include "input.h"
 
 void PrintRoots(double a, double b, double c, int quantity_roots, double first_root, double second_root);
+void PrintAddend(double a, short first_addend);
 
 enum QuantityRoots
 {
@@ -32,13 +33,48 @@ int main(void) {
     return 0;
 }
 
+void PrintAddend(double a, short first_addend){
+    putchar(' ');
+    if(first_addend){
+        if(ComparisonDouble(a, 1))
+            return;
+        printf("%lg", a);
+        return;
+    }
+    putchar(a < 0 ? '-' : '+');
+    putchar(' ');
+    if(!ComparisonDouble(a, 1))
+        printf("%lg", fabs(a));
+}
+
 void PrintRoots(double a, double b, double c, int quantity_roots, double first_root, double second_root){
-    printf("Уравнение ");
-    if(!IsZero(a))
-        printf("%lgx^2 + ", a);
-    if(!(IsZero(a) && IsZero(b)))
-        printf("%lgx + ", b);
-    printf("%lg = 0 ", c);
+    printf("Уравнение");
+
+    short first_addend = true;
+
+    if(!IsZero(a)){
+        PrintAddend(a, first_addend); //1x^2 + -0x + -0 = 0 <=> x^2 = 0
+        printf("x^2");
+        first_addend = false;
+    }
+
+    if(!IsZero(b)){
+        PrintAddend(b, first_addend);
+        printf("x");
+        first_addend = false;
+    }
+
+    if(!IsZero(c)){
+        PrintAddend(c, first_addend);
+        if(ComparisonDouble(c, 1))
+            putchar('1');
+        first_addend = false;
+    }
+
+    if(first_addend)
+        printf(" 0");
+
+    printf(" = 0 ");
 
     switch (quantity_roots){
         case ZERO_ROOTS:
