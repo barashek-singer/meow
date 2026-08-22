@@ -1,19 +1,13 @@
 #include <TXLib.h>
 #include <stdio.h>
-#include "input.h"
-
-enum InputErrors
-{
-    NO_INPUT_ERROR,
-    INPUT_ERROR_SCANF,
-    INPUT_ERROR_EXTRA_SYMBOLS_AFTER,
-    INPUT_ERROR_INF_NAN
-};
+#include <ctype.h>
+#include <math.h>
+#include "square_solver.h"
 
 void ShowError(int error_vale){
     switch (error_vale){
         case INPUT_ERROR_SCANF:
-            puts("Ошибка ввода, число должно состоять из цифр и не более одной точки");
+            puts("Ну, число как минимум должно начинаться с цифры или его знака (не более одного)");
             break;
 
         case INPUT_ERROR_EXTRA_SYMBOLS_AFTER:
@@ -30,23 +24,27 @@ void ShowError(int error_vale){
     }
 }
 
+void SkipToEndStr(){
+    scanf("%*[^\n]");
+}
+
 int InputCoefficient(double* coefficient, char letter_coefficient){
 
     printf("Введите %c: ", letter_coefficient);
 
-    int ch = '\0';
+    int temp_ch = '\0';
     int error_vale = NO_INPUT_ERROR;
 
     if(!scanf("%lf", coefficient)){ //успешный ли ввод
         error_vale = INPUT_ERROR_SCANF;
-        scanf("%*[^\n]");
+        SkipToEndStr();
     }
 
     else //нет ли символов после
-        while((ch = getchar()) != '\n')
-            if(!isspace(ch)){
+        while((temp_ch = getchar()) != '\n')
+            if(!isspace(temp_ch)){
                 error_vale = INPUT_ERROR_EXTRA_SYMBOLS_AFTER;
-                scanf("%*[^\n]");
+                SkipToEndStr();
             }
 
     if(!error_vale && !isfinite(*coefficient)) //является ли числом
