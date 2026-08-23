@@ -28,6 +28,10 @@ void SkipToEndStr(){
     scanf("%*[^\n]");
 }
 
+void SkipBlancSymbols(){
+    scanf("%*[ \t]");
+}
+
 int InputCoefficient(double* coefficient, char letter_coefficient){
 
     printf("Введите %c: ", letter_coefficient);
@@ -35,19 +39,19 @@ int InputCoefficient(double* coefficient, char letter_coefficient){
     int temp_ch = '\0';
     int error_vale = NO_INPUT_ERROR;
 
-    if(!scanf("%lf", coefficient)){ //успешный ли ввод
+    if (!scanf("%lf", coefficient)){ //успешный ли ввод
         error_vale = INPUT_ERROR_SCANF;
         SkipToEndStr();
     }
 
     else //нет ли символов после
-        while((temp_ch = getchar()) != '\n')
-            if(!isspace(temp_ch)){
+        while ((temp_ch = getchar()) != '\n')
+            if (!isspace(temp_ch)){
                 error_vale = INPUT_ERROR_EXTRA_SYMBOLS_AFTER;
                 SkipToEndStr();
             }
 
-    if(!error_vale && !isfinite(*coefficient)) //является ли числом
+    if (!error_vale && !isfinite(*coefficient)) //является ли числом
         error_vale = INPUT_ERROR_INF_NAN;
 
     ShowError(error_vale);

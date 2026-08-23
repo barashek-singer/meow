@@ -20,9 +20,10 @@ enum QuantityRoots
     INFINITE_ROOTS = 3
 };
 
-struct QuadraticEquation{ //ax^2 + bx + c = a(x - first_root)(x - second_root)
+struct QuadraticEquation{ //ax^2 + bx + c = a(x - x1)(x - x2)
     double a, b, c;
-    double first_root, second_root;
+    int nroots;
+    double x1, x2;
 };
 
 int ComparisonDouble(double a, double b);
@@ -32,6 +33,8 @@ int InputCoefficient(double* coefficient, char letter_coefficient);
 void PrintAddend(double num, const char* name);
 void PrintSign(double num);
 void SkipToEndStr();
-void PrintRoots(QuadraticEquation quadratic_equation, int roots_count);
+void SkipBlancSymbols();
+void PrintResult(QuadraticEquation quadratic_eq);
+bool Question();
 
 #endif

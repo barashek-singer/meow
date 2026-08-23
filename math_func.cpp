@@ -2,7 +2,7 @@
 #include "square_solver.h"
 
 int ComparisonDouble(double a, double b){
-    if(fabs(a - b) < EPS)
+    if (fabs(a - b) < EPS)
         return 0;
 
     return (a < b) ? -1 : 1;
