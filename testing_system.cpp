@@ -1,9 +1,11 @@
 #include <TXLib.h>
+#include <stdarg.h>
 #include <stdio.h>
+#include "meowio.h"
 #include "square_solver.h"
-#include "print.h"
+#include "testing_system.h"
 
-#define TEST_FILE "tests.txt"
+const char* TEST_FILE = "tests.txt";
 
 int RunOneTest(size_t num_of_test, const QuadraticEquation quadratic_eq_ref){
     QuadraticEquation quadratic_eq = {.a = quadratic_eq_ref.a,
@@ -17,7 +19,7 @@ int RunOneTest(size_t num_of_test, const QuadraticEquation quadratic_eq_ref){
         return 0;
     }
 
-    switch (quadratic_eq.nroots){ //NOTE Мэйби сократить
+    switch (quadratic_eq.nroots){
         case ZERO_ROOTS: break;
 
         case ONE_ROOT:
@@ -40,7 +42,7 @@ int RunOneTest(size_t num_of_test, const QuadraticEquation quadratic_eq_ref){
             break;
 
         default:
-            assert(false); //специально ложное выражение для ахуевания от того, как сюда попали
+            meow_assert(false, "%s", "Как блять\n"); //специально ложное выражение для ахуевания от того, как сюда попали
     }
 
     return 1;
@@ -50,44 +52,80 @@ double RandDouble(){
     return (double)rand() + (double)rand() / (double)RAND_MAX;
 }
 
-ErrCode RunTests(int rand_tests_count){ //NOTE тоже мэйби как-то сократить
+ErrCode SafeClose(bool need_free, void* ptr, bool need_fclose, FILE* fp){
+    if(need_free)
+        free(ptr);
+
+    if(need_fclose)
+        if (fclose(fp) == EOF)
+            return ERROR_FCLOSE;
+
+    return NO_ERRORS_FOUND;
+}
+
+ErrCode StandardTesting(){
+    ErrCode error_code = NO_ERRORS_FOUND;
+    bool need_free = false, need_fclose = false;
 
     FILE* fp = fopen(TEST_FILE, "r");
     if (fp == NULL)
         return ERROR_FOPEN;
+    need_fclose = true;
 
     size_t fixed_tests_count = 0;
-    if(!fscanf(fp, "%zu", &fixed_tests_count)){
-        return ERROR_FSCANF;
+    if(fscanf(fp, "%zu", &fixed_tests_count) != 1){
+        error_code = SafeClose(need_free, NULL, need_fclose, fp);
+
+        return (ErrCode)((int)error_code | (int)ERROR_FSCANF);
     }
 
     QuadraticEquation* tests = (QuadraticEquation*)calloc(fixed_tests_count, sizeof(QuadraticEquation));
-    if (tests == NULL)
-        return ERROR_CALLOC;
+    if (tests == NULL){
+        error_code = SafeClose(need_free, NULL, need_fclose, fp);
 
-    ErrCode error_code = NO_ERRORS_FOUND;
+        return (ErrCode)((int)error_code | (int)ERROR_CALLOC);
+    }
+    need_free = true;
 
     for (size_t i = 0; i < fixed_tests_count; i++){
         error_code = InputStruct(fp, tests + i);
         if (error_code != NO_ERRORS_FOUND){
-            free(tests);
-            return error_code;
+            error_code = SafeClose(need_free, tests, need_fclose, fp);
+
+            return (ErrCode)((int)error_code | (int)ERROR_FSCANF);            // (2 - 3) ? : 0
         }
     }
 
-    if (fclose(fp) == EOF){
-        free(tests);
-        return ERROR_FCLOSE;
-    }
+    error_code = SafeClose(need_free, tests, need_fclose, fp);
 
-    size_t num_of_test = 0;
+    if (error_code != NO_ERRORS_FOUND)
+        return error_code;
+
     size_t success_tests_count = 0;
+    size_t num_of_test = 0;
 
     for (; num_of_test < fixed_tests_count; ++num_of_test)
         success_tests_count += RunOneTest(num_of_test + 1, tests[num_of_test]);
 
-    free(tests);
+    ChooseModification(CYAN_TEXT);
+    ChooseModification(BOLD_TEXT);
+    printf("Стандартных тестов пройдено %zu/%zu\n", success_tests_count, fixed_tests_count);
+    ChooseModification(RESET_TEXT);
 
+    return NO_ERRORS_FOUND;
+}
+
+//---/\---/\-------Это ASCII KOT!--//
+//  {  '-'  }                      //
+//  {  0 0  }     Добавь его себе  //
+//  --> V <--  в исходник, и тебе  //
+//   \ \|/ /      будет, наверно,  //
+//    \___/  приятно отлаживаться  //
+//---------------долгими ночами:)--//
+
+void RandomTesting(size_t rand_tests_count){
+    size_t success_tests_count = 0;
+    int num_of_test = 0;
     for (; rand_tests_count > 0; --rand_tests_count){
         QuadraticEquation quadratic_eq_ref = {.a = RandDouble(), .x1 = RandDouble(), .x2 = RandDouble()};
 
@@ -109,16 +147,27 @@ ErrCode RunTests(int rand_tests_count){ //NOTE тоже мэйби как-то сократить
         success_tests_count += RunOneTest(++num_of_test, quadratic_eq_ref);
     }
 
-    EscSeq(BOLD_TEXT, CYAN_TEXT, DEFAULT_COLOR_BACKGROUND);
-    printf("\nТестов пройдено %zu/%zu\n\n", success_tests_count, num_of_test);
-    ResetStyleText();
+    ChooseModification(CYAN_TEXT);
+    ChooseModification(BOLD_TEXT);
+    printf("Случайных тестов пройдено %zu/%zu\n\n", success_tests_count, rand_tests_count);
+    ChooseModification(RESET_TEXT);
+}
+
+ErrCode RunAllTests(size_t rand_tests_count){
+    ErrCode error_code = StandardTesting();
+
+    if (error_code != NO_ERRORS_FOUND)
+        return error_code;
+
+    if (rand_tests_count > 0)
+        RandomTesting(rand_tests_count);
 
     return NO_ERRORS_FOUND;
 }
 
-void SwapDouble(double* a, double* b){ /////////
-    assert(a != NULL);
-    assert(b != NULL);
+void SwapDouble(double* a, double* b){
+    meow_assert(a != NULL, "%s", "-,-\n");
+    meow_assert(b != NULL, "%s", "-,-\n");
 
     double temp = *a;
     *a = *b;

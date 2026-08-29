@@ -1,5 +1,6 @@
 #include <math.h>
 #include <assert.h>
+#include <stdarg.h>
 #include "square_solver.h"
 
 LessMore CmpDouble(double a, double b){
@@ -14,7 +15,7 @@ bool IsZero(double a){
 }
 
 RootsCount FindLinearRoots(double b, double c, double* root){ //bx + c = 0
-    assert(root != NULL);
+    meow_assert(root != NULL, "%s", "-,-\n");
 
     if (IsZero(b) && IsZero(c)) //Бесконечное число корней
         return INFINITE_ROOTS;
@@ -28,7 +29,7 @@ RootsCount FindLinearRoots(double b, double c, double* root){ //bx + c = 0
 }
 
 RootsCount FindSquareRoots(QuadraticEquation *quadratic_eq){
-    assert(quadratic_eq != NULL);
+    meow_assert(quadratic_eq != NULL, "%s", "-,-\n");
 
     if (IsZero(quadratic_eq->a)) //При a = 0 выражение становится линейным
         return FindLinearRoots(quadratic_eq->b, quadratic_eq->c, &(quadratic_eq->x1));
@@ -49,4 +50,12 @@ RootsCount FindSquareRoots(QuadraticEquation *quadratic_eq){
     quadratic_eq->x1 = (-quadratic_eq->b - sqrt_d) / (2 * quadratic_eq->a);
     quadratic_eq->x2 = (-quadratic_eq->b + sqrt_d) / (2 * quadratic_eq->a);
     return TWO_ROOTS;
+}
+
+int Pow(int base, int power){
+    int product = 1;
+    while(power-- > 0)
+        product *= base;
+
+    return product;
 }

@@ -1,7 +1,9 @@
 #include <TXLib.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <stdarg.h>
 #include <math.h>
+#include "meowio.h"
 #include "square_solver.h"
 
 void SkipToEndStr(){
@@ -13,36 +15,34 @@ void SkipBlancSymbols(){
 }
 
 ErrCode InputCoefficient(double* coefficient, const char letter_coefficient){
-    assert(coefficient != NULL);
+    meow_assert(coefficient != NULL, "%s", "-,-\n");
 
+    ChooseModification(YELLOW_TEXT);
     printf("Введите %c: ", letter_coefficient);
+    ChooseModification(RESET_TEXT);
 
     int temp_ch = '\0';
-    ErrCode error_val = NO_ERRORS_FOUND;
 
     if (scanf("%lg", coefficient) != 1){ //успешный ли ввод
-        error_val = ERROR_SCANF;
         SkipToEndStr();
+        return WARNING_SCANF;
     }
 
-    else //нет ли символов после
-        while ((temp_ch = getchar()) != '\n')
+    while ((temp_ch = getchar()) != '\n')
             if (!isspace(temp_ch)){
-                error_val = ERROR_EXTRA_SYMBOLS_AFTER;
-                SkipToEndStr(); //ПИЗДА(то)
+                SkipToEndStr();
+                return WARNING_EXTRA_SYM_AFTER;
             }
 
-    if (error_val == NO_ERRORS_FOUND && !isfinite(*coefficient)) //является ли числом
-        error_val = ERROR_INF_NAN;
+    if (!isfinite(*coefficient)) //является ли числом
+        return WARNING_INF_NAN;
 
-    ShowError(error_val);
-
-    return error_val;
+    return NO_ERRORS_FOUND;
 }
 
 ErrCode InputStruct(FILE* fp, QuadraticEquation* quadratic_eq){
-    assert(fp != NULL);
-    assert(quadratic_eq != NULL);
+    meow_assert(fp != NULL, "%s", "-,-\n");
+    meow_assert(quadratic_eq != NULL, "%s", "-,-\n");
 
     int nroots = 0;
 
@@ -55,15 +55,16 @@ ErrCode InputStruct(FILE* fp, QuadraticEquation* quadratic_eq){
 }
 
 void InputCoefficients(QuadraticEquation *quadratic_eq){
-    assert(quadratic_eq != NULL);
+    meow_assert(quadratic_eq != NULL, "%s", "-,-\n");
     puts("Введите коэффициенты квадратного уравнения вида: ax^2 + bx + c = 0");
 
-    while (InputCoefficient(&quadratic_eq->a, 'a') != NO_ERRORS_FOUND)
-        continue;
+    ErrCode error_code = NO_ERRORS_FOUND;
+    while ((error_code = InputCoefficient(&quadratic_eq->a, 'a')) != NO_ERRORS_FOUND)
+        ManageErrors(error_code);
 
-    while (InputCoefficient(&quadratic_eq->b, 'b') != NO_ERRORS_FOUND)
-        continue;
+    while ((error_code = InputCoefficient(&quadratic_eq->b, 'b')) != NO_ERRORS_FOUND)
+        ManageErrors(error_code);
 
-    while (InputCoefficient(&quadratic_eq->c, 'c') != NO_ERRORS_FOUND)
-        continue;
+    while ((error_code = InputCoefficient(&quadratic_eq->c, 'c')) != NO_ERRORS_FOUND)
+        ManageErrors(error_code);
 }

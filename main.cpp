@@ -2,12 +2,19 @@
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include "square_solver.h"
-#include "print.h"
+#include "math_func.cpp"
+#include "meowio.h"
+#include "input.cpp"
+#include "print.cpp"
+#include "testing_system.h"
+#include "testing_system.cpp"
 
 const int SIGN_LEN = 1;
+const int DECIMAL_ORDER = 6;
 
 bool CheckTestFlag(const char* arg);
 void PrintErrorFlag(const char* text, const char* in_flag);
@@ -15,13 +22,17 @@ ErrCode ParseFlags(int argc, char* argv[]);
 bool IsNumber(const char* str);
 
 int main(int argc, char* argv[]) {
-    /*
-    --help - Сводка флагов и что вообще делает программа (действительно)
-    --tests rand_tests_count - запуск проверки корректности вычисления корней квадратного уравнения, rand_tests_count из которых - рандомные (по умолчанию 0)
-    */
+/*
+--help - Сводка флагов и что вообще делает программа (действительно)
+--tests rand_tests_count - запуск проверки корректности вычисления корней квадратного уравнения, rand_tests_count из которых - рандомные (по умолчанию 0)
+*/
 
     ErrCode error_code = ParseFlags(argc, argv);
-    ShowError(error_code);
+
+    if (error_code != NO_ERRORS_FOUND){
+        ShowError(error_code);
+        return 1;
+    }
 
     bool continue_program = true;
 
@@ -36,40 +47,45 @@ int main(int argc, char* argv[]) {
         continue_program = AskQuestion();
     }
 
+    ChooseModification(PURPLE_TEXT);
+    ChooseModification(SLOW_BLINK_TEXT);
     puts("Mew~ (end of program <3)");
+    ChooseModification(RESET_TEXT);
+
     return 0;
 }
 
 ErrCode ParseFlags(int argc, char* argv[]){
-    for (int arg_num = 1; arg_num < argc; ++arg_num){
-        assert(0 <= arg_num && arg_num < argc);
-        if (!strcmp(argv[arg_num], TEST_FLAG)){
-            int rand_tests_count = 0;
+    for (int arg_num = 1; arg_num < argc; arg_num++){
+        meow_assert(0 <= arg_num && arg_num < argc, "%s", "Ебать ты лох, c массивами работать не умеешь\n");
 
-            if (arg_num + 1 < argc && strcmp(argv[arg_num + 1], "--")){
+        if (!strncmp(argv[arg_num], TEST_FLAG, strlen(TEST_FLAG) + 1)){
+            size_t rand_tests_count = 0;
+            bool correct_input = true;
 
-                bool correct_input = CheckTestFlag(argv[++arg_num]);
+            if (arg_num + 1 < argc && strncmp(argv[arg_num + 1], "--", 2)){
 
-                if(!correct_input)
-                    exit(1);
+                correct_input = CheckTestFlag(argv[++arg_num]);
+                if (!correct_input)
+                    return ERROR_FLAG;
 
-                rand_tests_count = atoi(argv[arg_num]);
+                rand_tests_count = (size_t)atoi(argv[arg_num]);
             }
 
-            ErrCode error_code = RunTests(rand_tests_count);
-            if(error_code != NO_ERRORS_FOUND)
+            ErrCode error_code = RunAllTests(rand_tests_count);
+            if (error_code != NO_ERRORS_FOUND)
                 return error_code;
         }
 
-        else if (!strcmp(argv[arg_num], HELP_FLAG))
+        else if (!strncmp(argv[arg_num], HELP_FLAG, strlen(HELP_FLAG) + 1))
             PrintHelp();
 
         else{
             printf("%s - неизвестный флаг\n"
-                   "Советую написать мне в лс, являетесь ли вы фурри"
-                   "Ну или может написать просто \"%s %s\"",
+                   "Советую написать мне в лс (в тг я котик_мяу_фурри_лол_йоу), являетесь ли вы фурри, раз вы любите такие флаги;)\n"
+                   "Ну или можете написать просто \"%s %s\"\n",
                         argv[arg_num], argv[0], HELP_FLAG);
-            exit(0);
+            return ERROR_FLAG;
         }
     }
 
@@ -77,10 +93,10 @@ ErrCode ParseFlags(int argc, char* argv[]){
 }
 
 bool CheckTestFlag(const char* arg){
-    assert(arg != NULL);
+    meow_assert(arg != NULL, "%s", "-,-\n");
 
     if(!IsNumber(arg)){
-        PrintErrorFlag("Введённый аргумент не является числом", TEST_FLAG); //TODO
+        PrintErrorFlag("Введённый аргумент не является числом", TEST_FLAG);
         return false;
     }
 
@@ -89,8 +105,10 @@ bool CheckTestFlag(const char* arg){
         return false;
     }
 
-    if (strlen(arg) > 6){ //TODO 6 - порядок степени 10 (менее 10^6 тестов вот тута v)
-        PrintErrorFlag("Слишком большее число: максимальное количество тестов - 999999", TEST_FLAG);
+    if (strlen(arg) > DECIMAL_ORDER){
+        char text[80] = "";
+        snprintf(text, sizeof(text), "Слишком большее число, максимальное количество тестов - %d", Pow(10, DECIMAL_ORDER) - 1);
+        PrintErrorFlag(text, TEST_FLAG);
         return false;
     }
 
@@ -98,14 +116,19 @@ bool CheckTestFlag(const char* arg){
 }
 
 void PrintErrorFlag(const char* text, const char* in_flag){
-    assert(text != NULL);
-    assert(in_flag != NULL);
+    meow_assert(text != NULL, "%s", "-,-\n");
+    meow_assert(in_flag != NULL, "%s", "-,-\n");
 
-    printf("in arg_num %s: %s", in_flag, text);
+    ChooseModification(PURPLE_TEXT);
+    ChooseModification(BOLD_TEXT);
+    printf("error in flag %s: ", in_flag);
+    ChooseModification(RESET_TEXT);
+
+    printf("%s", text);
 }
 
-bool IsNumber(const char* str){ /////////
-    assert(str != NULL);
+bool IsNumber(const char* str){
+    meow_assert(str != NULL, "%s", "-,-\n");
     if(!strncmp(str, "-", SIGN_LEN + 1) || !strncmp(str, "+", SIGN_LEN + 1))
         return false;
 
