@@ -95,13 +95,15 @@ void PrintAddend(double num, const char* name, int* addends_count){
 
 void PrintResult(const QuadraticEquation quadratic_eq){
     printf("Уравнение ");
-    int addends_count = 0;
+
+    int addends_count = 0; //счётчик выведенных слагаемых
 
     ChooseModification(YELLOW_TEXT);
 
+    //          коэффициент|переменная|счётчик слагаемых
     PrintAddend(quadratic_eq.a, "x^2", &addends_count);
-    PrintAddend(quadratic_eq.b, "x", &addends_count);
-    PrintAddend(quadratic_eq.c, "", &addends_count);
+    PrintAddend(quadratic_eq.b, "x"  , &addends_count);
+    PrintAddend(quadratic_eq.c, ""   , &addends_count);
 
     //Тут проверка на то, выводилась ли вообще хоть что-то в левой части уравнения
     if(addends_count == 0)

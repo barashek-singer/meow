@@ -42,7 +42,7 @@ int RunOneTest(size_t num_of_test, const QuadraticEquation quadratic_eq_ref){
             break;
 
         default:
-            meow_assert(false, "%s", "Как блять\n"); //специально ложное выражение для ахуевания от того, как сюда попали
+            meow_assert(false, "%s", "Как блять\n"); //специально ложное выражение для удивления от того, как сюда попали
     }
 
     return 1;
@@ -92,7 +92,7 @@ ErrCode StandardTesting(){
         if (error_code != NO_ERRORS_FOUND){
             error_code = SafeClose(need_free, tests, need_fclose, fp);
 
-            return (ErrCode)((int)error_code | (int)ERROR_FSCANF);            // (2 - 3) ? : 0
+            return (ErrCode)((int)error_code | (int)ERROR_FSCANF);
         }
     }
 
@@ -109,7 +109,7 @@ ErrCode StandardTesting(){
 
     ChooseModification(CYAN_TEXT);
     ChooseModification(BOLD_TEXT);
-    printf("Стандартных тестов пройдено %zu/%zu\n", success_tests_count, fixed_tests_count);
+    printf("\nСтандартных тестов пройдено %zu/%zu\n", success_tests_count, fixed_tests_count);
     ChooseModification(RESET_TEXT);
 
     return NO_ERRORS_FOUND;
@@ -125,8 +125,7 @@ ErrCode StandardTesting(){
 
 void RandomTesting(size_t rand_tests_count){
     size_t success_tests_count = 0;
-    int num_of_test = 0;
-    for (; rand_tests_count > 0; --rand_tests_count){
+    for (size_t num_of_test = 0; num_of_test < rand_tests_count; num_of_test++){
         QuadraticEquation quadratic_eq_ref = {.a = RandDouble(), .x1 = RandDouble(), .x2 = RandDouble()};
 
         if (CmpDouble(quadratic_eq_ref.x1, quadratic_eq_ref.x2) == EQUAL){
@@ -144,12 +143,12 @@ void RandomTesting(size_t rand_tests_count){
             quadratic_eq_ref.nroots = TWO_ROOTS;
         }
 
-        success_tests_count += RunOneTest(++num_of_test, quadratic_eq_ref);
+        success_tests_count += RunOneTest(num_of_test + 1, quadratic_eq_ref);
     }
 
     ChooseModification(CYAN_TEXT);
     ChooseModification(BOLD_TEXT);
-    printf("Случайных тестов пройдено %zu/%zu\n\n", success_tests_count, rand_tests_count);
+    printf("\nСлучайных тестов пройдено %zu/%zu\n\n", success_tests_count, rand_tests_count);
     ChooseModification(RESET_TEXT);
 }
 

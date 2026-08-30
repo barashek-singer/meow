@@ -6,38 +6,20 @@
 #include "meowio.h"
 #include "square_solver.h"
 
+ErrCode UniteErrorCodes(ErrCode error_code1, ErrCode error_code2){
+    return (ErrCode)((int)error_code1 | (int)error_code2);
+}
+
+ErrCode IntersectErrorCodes(ErrCode error_code1, ErrCode error_code2){
+    return (ErrCode)((int)error_code1 & (int)error_code2);
+}
+
 void SkipToEndStr(){
     scanf("%*[^\n]");
 }
 
-void SkipBlancSymbols(){
+void SkipBlancSymbols(){ //пропускает только пробелы и табы
     scanf("%*[ \t]");
-}
-
-ErrCode InputCoefficient(double* coefficient, const char letter_coefficient){
-    meow_assert(coefficient != NULL, "%s", "-,-\n");
-
-    ChooseModification(YELLOW_TEXT);
-    printf("¬ведите %c: ", letter_coefficient);
-    ChooseModification(RESET_TEXT);
-
-    int temp_ch = '\0';
-
-    if (scanf("%lg", coefficient) != 1){ //успешный ли ввод
-        SkipToEndStr();
-        return WARNING_SCANF;
-    }
-
-    while ((temp_ch = getchar()) != '\n')
-            if (!isspace(temp_ch)){
-                SkipToEndStr();
-                return WARNING_EXTRA_SYM_AFTER;
-            }
-
-    if (!isfinite(*coefficient)) //€вл€етс€ ли числом
-        return WARNING_INF_NAN;
-
-    return NO_ERRORS_FOUND;
 }
 
 ErrCode InputStruct(FILE* fp, QuadraticEquation* quadratic_eq){
@@ -54,17 +36,42 @@ ErrCode InputStruct(FILE* fp, QuadraticEquation* quadratic_eq){
     return NO_ERRORS_FOUND;
 }
 
+void InputCoefficient(double* coefficient, const char letter_coefficient){
+    meow_assert(coefficient != NULL, "%s", "-,-\n");
+    ErrCode error_code = NO_ERRORS_FOUND;
+    do{
+        ChooseModification(YELLOW_TEXT);
+        printf("¬ведите %c: ", letter_coefficient);
+        ChooseModification(RESET_TEXT);
+
+        int temp_ch = '\0';
+        error_code = NO_ERRORS_FOUND;
+
+        if (scanf("%lg", coefficient) != 1){
+            SkipToEndStr();
+            error_code = WARNING_SCANF;
+        }
+
+        else
+            while ((temp_ch = getchar()) != '\n')
+                if (!isspace(temp_ch)) {
+                    SkipToEndStr();
+                    error_code = WARNING_EXTRA_SYM_AFTER;
+                }
+
+
+        if (error_code == NO_ERRORS_FOUND && !isfinite(*coefficient))
+            error_code = WARNING_INF_NAN;
+
+        ManageErrors(error_code);
+    } while(error_code != NO_ERRORS_FOUND);
+}
+
 void InputCoefficients(QuadraticEquation *quadratic_eq){
     meow_assert(quadratic_eq != NULL, "%s", "-,-\n");
     puts("¬ведите коэффициенты квадратного уравнени€ вида: ax^2 + bx + c = 0");
 
-    ErrCode error_code = NO_ERRORS_FOUND;
-    while ((error_code = InputCoefficient(&quadratic_eq->a, 'a')) != NO_ERRORS_FOUND)
-        ManageErrors(error_code);
-
-    while ((error_code = InputCoefficient(&quadratic_eq->b, 'b')) != NO_ERRORS_FOUND)
-        ManageErrors(error_code);
-
-    while ((error_code = InputCoefficient(&quadratic_eq->c, 'c')) != NO_ERRORS_FOUND)
-        ManageErrors(error_code);
+    InputCoefficient(&quadratic_eq->a, 'a');
+    InputCoefficient(&quadratic_eq->b, 'b');
+    InputCoefficient(&quadratic_eq->c, 'c');
 }

@@ -96,18 +96,27 @@ bool CheckTestFlag(const char* arg){
     meow_assert(arg != NULL, "%s", "-,-\n");
 
     if(!IsNumber(arg)){
-        PrintErrorFlag("Введённый аргумент не является числом", TEST_FLAG);
+        PrintErrorFlag("Введённый аргумент не является числом\n", TEST_FLAG);
         return false;
     }
 
     if(arg[0] == '-'){
-        PrintErrorFlag("Количество тестов должно быть неотрицательным", TEST_FLAG);
+        PrintErrorFlag("Количество тестов должно быть неотрицательным\n", TEST_FLAG);
         return false;
     }
 
-    if (strlen(arg) > DECIMAL_ORDER){
+    //"откидывание" ведущих нулей
+    const char* str = arg;
+    while(*str == '0')
+        ++str;
+
+    //если в итоге число является нулём
+    if (*str == '\0')
+        return true;
+
+    if (strlen(str) > DECIMAL_ORDER){
         char text[80] = "";
-        snprintf(text, sizeof(text), "Слишком большее число, максимальное количество тестов - %d", Pow(10, DECIMAL_ORDER) - 1);
+        snprintf(text, sizeof(text), "Слишком большее число, максимальное количество тестов - %d\n", Pow(10, DECIMAL_ORDER) - 1);
         PrintErrorFlag(text, TEST_FLAG);
         return false;
     }
@@ -129,6 +138,8 @@ void PrintErrorFlag(const char* text, const char* in_flag){
 
 bool IsNumber(const char* str){
     meow_assert(str != NULL, "%s", "-,-\n");
+
+    //"-" и "+" не являются числами
     if(!strncmp(str, "-", SIGN_LEN + 1) || !strncmp(str, "+", SIGN_LEN + 1))
         return false;
 
